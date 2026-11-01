@@ -1,4 +1,10 @@
-"""G5L11 검토용 초안 생성. 실행: python (olefile, lxml 설치 필요)."""
+"""G5L11 워크시트 생성 (olefile, lxml 설치 필요).
+
+출력 기준:
+- 반·번호·이름 작성란과 ‘검토용 초안’ 문구를 넣지 않는다.
+- 하단 보기에는 ‘보기:’ 접두어 없이 단어·표현 목록만 표시한다.
+- 정답 후보 등 확인이 필요한 사항은 생성_검수.md에 별도로 기록한다.
+"""
 from pathlib import Path
 import argparse
 import shutil
@@ -82,13 +88,12 @@ for version in [1, 2, 3, 4, 'Answers']:
         title = '교사용 정답지' if key else f'Dictation({version})'
         # One shared heading avoids repeating the same two-line title in both columns.
         heading = root.find('hp:p/hp:run/hp:t', NS)
-        heading.text = f'Lesson 11. What’s in the Kitchen? — {title} [검토용 초안]'
+        heading.text = f'Lesson 11. What’s in the Kitchen? — {title}'
         rows = table.findall('hp:tr', NS)
         for idx, cell in enumerate(rows[0].findall('hp:tc', NS)):
             sub = cell.find('hp:subList', NS)
             sub[:] = []
             sub.append(paragraph('Fun Talk' if idx == 0 else 'Real Talk', '14', '21'))
-            sub.append(paragraph('5학년   반: ______  번호: ______  이름: ______________'))
             t_idx = 0
             for kind, text in stories[idx]:
                 if kind == 'scene': sub.append(paragraph(f'[장면 {text}]', '16', '23')); continue
@@ -106,7 +111,7 @@ for version in [1, 2, 3, 4, 'Answers']:
         if choices:
             for idx, cell in enumerate(rows[1].findall('hp:tc', NS)):
                 sub = cell.find('hp:subList', NS); sub[:] = []
-                sub.append(paragraph('보기: ' + '    /    '.join(sorted(ANSWERS[idx]))))
+                sub.append(paragraph('    /    '.join(sorted(ANSWERS[idx]))))
         # Old line-layout caches describe the previous lesson and must be recalculated.
         for cache in root.findall('.//hp:linesegarray', NS): cache.getparent().remove(cache)
         preview = '\n'.join(t.text or '' for t in root.findall('.//hp:t', NS))
